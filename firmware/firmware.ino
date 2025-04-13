@@ -14,7 +14,7 @@
 */
 
 #define BUZZER_PIN 11
-#define BUTTON_PIN 8
+#define BUTTON_PIN 12
 #define BAUD_RATE 115200
 #define REFRESH_RATE 20 // ms
 #define FREQ 600 // hz
