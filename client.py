@@ -22,7 +22,7 @@ import time
 import socket
 import threading
 
-SERIAL_PORT = "COM4"
+SERIAL_PORT = "COM3"
 BAUD_RATE = 115200
 REMOTE_HOST = "192.168.1.167"
 REMOTE_PORT = 25555
