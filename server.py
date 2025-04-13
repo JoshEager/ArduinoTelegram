@@ -30,7 +30,6 @@ def handle_client(client_socket, client_addr):
             print(f"Recieved a {bit.decode()} from {client_addr}")
             if not bit:
                 break
-            client_socket.send("0".encode("utf-8"))
 
             with clients_lock:
                 for other_client in clients:

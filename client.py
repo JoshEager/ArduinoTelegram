@@ -20,46 +20,66 @@ send the internet a 1.
 import serial
 import time 
 import socket
-
+import threading
 
 SERIAL_PORT = "COM4"
 BAUD_RATE = 115200
-REMOTE_HOST = "127.0.0.1"
+REMOTE_HOST = "192.168.1.167"
 REMOTE_PORT = 25555
 
 serialInterface = serial.Serial(SERIAL_PORT, BAUD_RATE)
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 time.sleep(1) # Ensure serial and sockets are properly set up
 
-
-def main():
-    client_socket.connect((REMOTE_HOST, REMOTE_PORT))
-    print(f"Connected to {REMOTE_HOST} on port {REMOTE_PORT:d}")
-
+def sendIfHIGH():
     try: 
         while True:
+            # Reading the bit from Serial
             try:
                 arduinoBit = int(serialInterface.readline())
             except Exception as e:
                 print(f"error reading arduino bit: {e}")
                 arduinoBit = 0
-
-            if arduinoBit == 0 or arduinoBit == 1: 
+            print(arduinoBit)
+            
+            # Send the bit if it's a 1
+            if arduinoBit == 1: 
                 client_socket.send(str(arduinoBit).encode("utf-8"))
                 print(f"Send: {arduinoBit}")
-            try:
-                internetBit = int(client_socket.recv(1))
-            except: 
-                internetBit = 0
-            if internetBit == 0 or internetBit == 1:
-                serialInterface.write(str(internetBit).encode("utf-8"))
-                print(f"Recieved: {internetBit}")
 
     except Exception as e:
         print(f"Error: {e}")
 
     finally: 
         client_socket.close()
+
+def recvIfHIGH():
+    try:
+        while True: 
+            # Recieve a bit from the server. If there is no message actively being sent this will hang 
+            try:
+                internetBit = int(client_socket.recv(1))
+
+            except Exception as e: 
+                print(f"Error recieving bit: {e}")
+                break
+
+            if internetBit == 1:
+                serialInterface.write(str(internetBit).encode("utf-8"))
+                print(f"Recieved: {internetBit}")
+
+    except Exception as e:
+        print(f"Error Recieving: {e}")
+
+
+def main():
+    client_socket.connect((REMOTE_HOST, REMOTE_PORT))
+    print(f"Connected to {REMOTE_HOST} on port {REMOTE_PORT:d}")
+    sendThread = threading.Thread(target=sendIfHIGH)
+    sendThread.start()
+    recvThread = threading.Thread(target=recvIfHIGH)
+    recvThread.start()
+    
 
 
 if __name__ == "__main__":
