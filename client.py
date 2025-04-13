@@ -24,7 +24,7 @@ import threading
 
 SERIAL_PORT = "COM3"
 BAUD_RATE = 115200
-REMOTE_HOST = "192.168.1.167"
+REMOTE_HOST = "telegram.moddedminecraft.uk"
 REMOTE_PORT = 25555
 
 serialInterface = serial.Serial(SERIAL_PORT, BAUD_RATE)
