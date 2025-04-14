@@ -33,19 +33,30 @@ time.sleep(1) # Ensure serial and sockets are properly set up
 
 def sendIfHIGH():
     try: 
+        outBoundBits = []
         while True:
             # Reading the bit from Serial
             try:
-                arduinoBit = int(serialInterface.readline())
+                currentBit = int(serialInterface.readline())
             except Exception as e:
                 print(f"error reading arduino bit: {e}")
-                arduinoBit = 0
-            print(arduinoBit)
+                currentBit = 0
+            print(currentBit)
             
-            # Send the bit if it's a 1
-            if arduinoBit == 1: 
-                client_socket.send(str(arduinoBit).encode("utf-8"))
-                print(f"Send: {arduinoBit}")
+            # If the bit is a 1 then add it to outbound bits. 
+            # If it is a zero then check to see if there are outbound bits
+            # If there are outbound bits, then you need to send them because that's the end of the
+            # sentence. You should then also clear the outbound bits. If there are not, do nothing. 
+            if currentBit == 1:
+                outBoundBits.append(1)
+            else: # if currentBit == 0
+                if len(outBoundBits) > 0:
+                    for outBoundBit in outBoundBits:
+                        client_socket.send(str(outBoundBit).encode("utf-8"))
+                    print(f"Sent: {str(outBoundBits)}")
+                    outBoundBits = []
+                else: 
+                    pass
 
     except Exception as e:
         print(f"Error: {e}")
