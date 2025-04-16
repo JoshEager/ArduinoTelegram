@@ -55,6 +55,11 @@ def recieveTelegram(serialInterface: serial.Serial, client_socket: socket.socket
         ditOrDahDuration = int.from_bytes(client_socket.recv(TRANSMISSION_BYTES), byteorder="big", signed=False)
         ditOrDah = "1" * ditOrDahDuration
         for bit in ditOrDah:
+            # TODO: writing all the bits at once can overflow the serial buffer on the arduino for dahs longer than ~3 seconds. 
+            # They should not all be written at once, but if you time.sleep() between bit writes (in order to make sure they're not all written at once),
+            # it pauses recieving and can break things. I think you would have to open a new thread so recieving and writing can happen at the same time. 
+            # Also, if you write to it while it is still buzzing, the buzzes will just add together.
+            # Somehow you need a way to count time between each ditsOrDahs recieved, and then force the program to honor that time.   
             serialInterface.write(bit.encode("utf-8"))
         print(f"Recieved a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < .18 else "dah"}")
 
