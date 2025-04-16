@@ -1,76 +1,70 @@
 """
+This is a program that is simply responsible for forwarding transmissions from one client
+to another. 
 
-This is a program that is used as a relay for telegraph communication. 
-This program needs to:
-    - Accept and handle clients
-        -> Read serial from clients
-        -> Forward the serial read from one client to all other clients
+Behaviors: 
+    - Recieves a duration from a client and forwards that to all the other clients
+        -> This "duration" is just a 16 byte, unsigned, and big endian integer that is directly
+            proportional to the amount of time that a dit or dah lasts. 
+                - None of this is important though because the server literally does not care.
 
 """
+from config import REMOTE_PORT, TRANSMISSION_BYTES
+import socket 
+import threading
+import typing 
 
-import socket
-import threading 
 
-
-LOCAL_HOST = "0.0.0.0"
-LOCAL_PORT = 25555
-
-clients = []
+clients: typing.List[socket.socket] = []
 clients_lock = threading.Lock()
 
-
-def handle_client(client_socket, client_addr): 
-    print(f"New connection from {client_addr}")
+def forwardTelegrams(client_socket: socket.socket, client_address):
+    """ 
+        Function that should run in its own thread and will forward ditOrDah durations 
+        from one client to all the others. 
+    """
+    print(f"New connection from {client_address}")
     with clients_lock:
         clients.append(client_socket)
     
-    try: 
+    try:
         while True:
-            bit = client_socket.recv(1)
-            print(f"Recieved a {bit.decode()} from {client_addr}")
-            if not bit:
+            ditOrDahDuration = client_socket.recv(TRANSMISSION_BYTES)
+            if not ditOrDahDuration:
                 break
-
+            
             with clients_lock:
                 for other_client in clients:
                     if other_client != client_socket:
                         try:
-                            other_client.send(bit)
+                            other_client.send(ditOrDahDuration)
                         except: # Broken client
                             clients.remove(other_client)
                             print("Removed disconnected client")
-
     except Exception as e:
-        print(f"Error with {client_addr}: {e}") 
-
+        print(f"Error with {client_address}: {e}")
     finally:
         with clients_lock:
             if client_socket in clients:
                 clients.remove(client_socket)
-        client_socket.close()
-        print(f"Disconnected {client_addr}")
+            client_socket.close()
+            print(f"Disconnected {client_address}")
 
-
-def main():
+def main(): 
+    """ Main handles initializing connections """
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((LOCAL_HOST, LOCAL_PORT))
+    server_socket.bind(("0.0.0.0", REMOTE_PORT))
     server_socket.listen(5)
-    print(f"Server listening on {LOCAL_HOST}:{LOCAL_PORT:d}")
-
+    print(f"Server listening on 0.0.0.0:{REMOTE_PORT}")
+    
     try:
         while True:
-            client_socket, client_addr = server_socket.accept()
-            thread = threading.Thread(target=handle_client, args=(client_socket, client_addr))
+            client_socket, client_address = server_socket.accept()
+            thread = threading.Thread(target=forwardTelegrams, args=(client_socket, client_address))
             thread.start()
-    
     except Exception as e:
         print(f"Shutting down: {e}")
-    
-    finally: 
+    finally:
         for client_socket in clients:
             client_socket.close()
         server_socket.close()
-        
-
-if __name__ == "__main__":
-    main()
