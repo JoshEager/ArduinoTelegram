@@ -16,7 +16,7 @@ ARDUINO_REFRESH_DELAY = 20 # ms
 TRANSMISSION_BYTES = 16 
 
 # The port that the arduino is connected on. 
-SERIAL_PORT = "COM3"
+SERIAL_PORT = "COM4"
 
 BAUDRATE = 115200
 
