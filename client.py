@@ -37,17 +37,17 @@ def sendTelegram(serialInterface: serial.Serial, client_socket: socket.socket):
             outBoundBuffer.append(currentBit)
         else:
             if len(outBoundBuffer) > 0:
-                sendDitOrDah(str(outBoundBuffer), client_socket)
+                sendDitOrDah(outBoundBuffer, client_socket)
                 outBoundBuffer = []
             else: pass 
 
-def sendDitOrDah(ditOrDah: str, client_socket: socket.socket):
+def sendDitOrDah(ditOrDah: list, client_socket: socket.socket):
     """ Function that sends the duration of either a dit or a dah """
     # Find the number of 1s in the ditOrDah string (it will only ever contain 1s)
     # and then put that in TRANSMISSION_BYTES bytes and send it
     ditOrDahDuration = len(ditOrDah).to_bytes(TRANSMISSION_BYTES, byteorder="big", signed=False)
     client_socket.send(ditOrDahDuration)
-    print(f"Sent a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < 1 else "dah"}")
+    print(f"Sent a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < .2 else "dah"}")
 
 def recieveTelegram(serialInterface: serial.Serial, client_socket: socket.socket):
     """ Function that should run in its own thread and recieves dits or dahs from the internet """
@@ -55,8 +55,8 @@ def recieveTelegram(serialInterface: serial.Serial, client_socket: socket.socket
         ditOrDahDuration = int.from_bytes(client_socket.recv(TRANSMISSION_BYTES), byteorder="big", signed=False)
         ditOrDah = "1" * ditOrDahDuration
         for bit in ditOrDah:
-            serialInterface.write(bit)
-        print(f"Recieved a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < 1 else "dah"}")
+            serialInterface.write(bit.encode("utf-8"))
+        print(f"Recieved a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < .2 else "dah"}")
 
 def main():
     serialInterface = serial.Serial(SERIAL_PORT, BAUDRATE)
