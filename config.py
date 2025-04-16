@@ -11,7 +11,7 @@ Configurations for the telegraph app.
 ARDUINO_REFRESH_DELAY = 20 # ms
 
 # Corresponds to how long of a message you can send. 
-# 2^TRANSMISSION_BYTES / (1000 / ARDUINO_REFRESH_DELAY) yeilds the amount of seconds of 
+# 2^(8 *TRANSMISSION_BYTES) / (1000 / ARDUINO_REFRESH_DELAY) yeilds the amount of seconds of 
 # buzzing that can be sent continuosly.  
 TRANSMISSION_BYTES = 2
 
