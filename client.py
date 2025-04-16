@@ -47,7 +47,7 @@ def sendDitOrDah(ditOrDah: list, client_socket: socket.socket):
     # and then put that in TRANSMISSION_BYTES bytes and send it
     ditOrDahDuration = len(ditOrDah).to_bytes(TRANSMISSION_BYTES, byteorder="big", signed=False)
     client_socket.send(ditOrDahDuration)
-    print(f"Sent a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < .2 else "dah"}")
+    print(f"Sent a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < .18 else "dah"}")
 
 def recieveTelegram(serialInterface: serial.Serial, client_socket: socket.socket):
     """ Function that should run in its own thread and recieves dits or dahs from the internet """
@@ -56,7 +56,7 @@ def recieveTelegram(serialInterface: serial.Serial, client_socket: socket.socket
         ditOrDah = "1" * ditOrDahDuration
         for bit in ditOrDah:
             serialInterface.write(bit.encode("utf-8"))
-        print(f"Recieved a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < .2 else "dah"}")
+        print(f"Recieved a {(ARDUINO_REFRESH_DELAY * len(ditOrDah)) / 1000} second {"dit" if len(ditOrDah) * ARDUINO_REFRESH_DELAY / 1000 < .18 else "dah"}")
 
 def main():
     serialInterface = serial.Serial(SERIAL_PORT, BAUDRATE)
